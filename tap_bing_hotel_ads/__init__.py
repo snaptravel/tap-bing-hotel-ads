@@ -20,7 +20,7 @@ from singer import bookmarks
 from singer import utils
 from singer import metadata
 
-import reports
+import tap_bing_hotel_ads.reports
 
 
 LOGGER = singer.get_logger()
