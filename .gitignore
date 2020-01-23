@@ -1,0 +1,8 @@
+.DS_Store
+.DS_STORE
+*.pyc
+.python-version
+.vscode/
+*__pycache__*
+config.json
+*.egg-info

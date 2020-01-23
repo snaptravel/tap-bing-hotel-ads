@@ -8,12 +8,13 @@ setup(name='tap-bing-hotel-ads',
       author='Snaptravel',
       url='http://singer.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
-      py_modules=['tap_bha'],
+      py_modules=['tap_bing_hotel_ads'],
       install_requires=[
           'arrow==0.12.0',
-          'singer-python==5.1.5',
-          'requests==2.20.0',
           'pytz==2018.4',
+          'requests_oauthlib==1.3.0',
+          'requests==2.20.0',
+          'singer-python==5.1.5',
       ],
       extras_require={
           'dev': [
@@ -25,11 +26,11 @@ setup(name='tap-bing-hotel-ads',
           [console_scripts]
           tap-bing-hotel-ads=tap_bing_hotel_ads:main
       ''',
-      packages=['tap_bha'],
+      packages=['tap_bing_hotel_ads'],
       package_data = {
-          'tap_bha/schemas': [
+          'tap_bing_hotel_ads/schemas': [
           ],
-          'tap_bha/metadata': [
+          'tap_bing_hotel_ads/metadata': [
           ],
       },
       include_package_data=True,
