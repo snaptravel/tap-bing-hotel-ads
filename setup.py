@@ -14,7 +14,7 @@ setup(name='tap-bing-hotel-ads',
           'pytz==2018.4',
           'requests_oauthlib==1.3.0',
           'requests==2.20.0',
-          'singer-python==5.1.5',
+          'singer-python==5.8.0',
       ],
       extras_require={
           'dev': [
