@@ -148,12 +148,14 @@ def stream_report(url, id):
 
                 schema = {'properties': {}}
                 for h in headers:
+                    if not h in reports.REPORTING_FIELDNAME_MAP:
+                        continue
                     f = reports.REPORTING_FIELDNAME_MAP[h]
                     t = reports.REPORTING_FIELD_TYPES[f]
                     if f == 'HotelId':
-                        schema['properties'][f] = {'type': t, 'key': True}
+                        schema['properties'][h] = {'type': t, 'key': True}
                     else:
-                        schema['properties'][f] = {'type': t}
+                        schema['properties'][h] = {'type': t}
                 singer.write_schema('id', schema, ['HotelId'])
 
                 with metrics.record_counter(id) as counter:
@@ -168,8 +170,9 @@ def type_report_row(row):
         if value == '':
             value = None
 
-        if value is not None and field_name in reports.REPORTING_FIELD_TYPES:
-            _type = reports.REPORTING_FIELD_TYPES[field_name]
+        if value is not None and field_name in reports.REPORTING_FIELDNAME_MAP:
+            colname = reports.REPORTING_FIELDNAME_MAP[field_name]
+            _type = reports.REPORTING_FIELD_TYPES[colname]
             if _type == 'integer':
                 value = int(value.replace(',', ''))
             elif _type == 'number':
