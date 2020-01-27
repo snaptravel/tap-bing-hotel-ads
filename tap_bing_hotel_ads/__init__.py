@@ -156,7 +156,7 @@ def stream_report(url, id, end_date):
                         schema['properties'][h] = {'type': t, 'key': True}
                     else:
                         schema['properties'][h] = {'type': t}
-                singer.write_schema('id', schema, ['Hotel ID'])
+                singer.write_schema(id, schema, ['Hotel ID'])
 
                 with metrics.record_counter(id) as counter:
                     for row in reader:
