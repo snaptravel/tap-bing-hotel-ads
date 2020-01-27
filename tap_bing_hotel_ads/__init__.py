@@ -37,7 +37,8 @@ REQUIRED_CONFIG_KEYS = [
 DATE_FORMAT='%Y-%m-%d'
 SESSION = requests.session()
 CONFIG = {}
-DEFAULT_COLS = ["HotelId", "Clicks"] 
+DEFAULT_COLS = ["HotelId", "Clicks"]
+KEYS = ["HotelId"]
 
 # ~10 min polling timeout
 MAX_NUM_REPORT_POLLS = 120
@@ -151,21 +152,23 @@ def stream_report(url, id, end_date):
                     if not h in reports.REPORTING_FIELDNAME_MAP:
                         continue
                     f = reports.REPORTING_FIELDNAME_MAP[h]
-                    t = reports.REPORTING_FIELD_TYPES[f]
-                    if h == 'Hotel ID':
-                        schema['properties'][h] = {'type': t, 'key': True}
-                    else:
-                        schema['properties'][h] = {'type': t}
-                singer.write_schema(id, schema, ['Hotel ID'])
+                    _type = reports.REPORTING_FIELD_TYPES[f]
+                    field_data = {'type': _type}
+                    if _type in ['date', 'datetime']:
+                        field_data = {'type': 'string', 'format': 'date-time'}
+                    if f in KEYS:
+                        field_data['key'] = True
+                    schema['properties'][f] = field_data
+                singer.write_schema(id, schema, KEYS)
 
                 with metrics.record_counter(id) as counter:
                     for row in reader:
-                        type_report_row(row)
-                        singer.write_record(id, row)
+                        singer.write_record(id, type_report_row(row))
                         counter.increment()
                 singer.write_state({'start_date': end_date})
 
 def type_report_row(row):
+    output = {}
     for field_name, value in row.items():
         value = value.strip()
         if value == '':
@@ -180,8 +183,8 @@ def type_report_row(row):
                 value = float(value.replace('%', '').replace(',', ''))
             elif _type in ['date', 'datetime']:
                 value = arrow.get(value).isoformat()
-
-        row[field_name] = value
+            output[colname] = value
+    return output
 
 def main_impl():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
