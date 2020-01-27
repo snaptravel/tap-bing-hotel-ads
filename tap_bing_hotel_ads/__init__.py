@@ -152,11 +152,11 @@ def stream_report(url, id):
                         continue
                     f = reports.REPORTING_FIELDNAME_MAP[h]
                     t = reports.REPORTING_FIELD_TYPES[f]
-                    if f == 'HotelId':
+                    if h == 'Hotel ID':
                         schema['properties'][h] = {'type': t, 'key': True}
                     else:
                         schema['properties'][h] = {'type': t}
-                singer.write_schema('id', schema, ['HotelId'])
+                singer.write_schema('id', schema, ['Hotel ID'])
 
                 with metrics.record_counter(id) as counter:
                     for row in reader:
