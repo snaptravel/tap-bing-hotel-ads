@@ -123,11 +123,11 @@ async def do_sync(start_date, end_date, cols):
         LOGGER.info('Streaming report: {} for customer {}, account {} - from {} to {}'
                     .format(job_id, customer_id, account_id, start_date, end_date))
 
-        stream_report(download_url, job_id)
+        stream_report(download_url, job_id, end_date)
         return True
     return False
 
-def stream_report(url, id):
+def stream_report(url, id, end_date):
     with metrics.http_request_timer('download_report'):
         response = requests.get(url)
 
@@ -146,11 +146,24 @@ def stream_report(url, id):
 
                 reader = csv.DictReader(csv_file, fieldnames=headers)
 
+                schema = {'properties': {}}
+                for h in headers:
+                    if not h in reports.REPORTING_FIELDNAME_MAP:
+                        continue
+                    f = reports.REPORTING_FIELDNAME_MAP[h]
+                    t = reports.REPORTING_FIELD_TYPES[f]
+                    if h == 'Hotel ID':
+                        schema['properties'][h] = {'type': t, 'key': True}
+                    else:
+                        schema['properties'][h] = {'type': t}
+                singer.write_schema('id', schema, ['Hotel ID'])
+
                 with metrics.record_counter(id) as counter:
                     for row in reader:
                         type_report_row(row)
                         singer.write_record(id, row)
                         counter.increment()
+                singer.write_state({'start_date': end_date})
 
 def type_report_row(row):
     for field_name, value in row.items():
@@ -158,8 +171,9 @@ def type_report_row(row):
         if value == '':
             value = None
 
-        if value is not None and field_name in reports.REPORTING_FIELD_TYPES:
-            _type = reports.REPORTING_FIELD_TYPES[field_name]
+        if value is not None and field_name in reports.REPORTING_FIELDNAME_MAP:
+            colname = reports.REPORTING_FIELDNAME_MAP[field_name]
+            _type = reports.REPORTING_FIELD_TYPES[colname]
             if _type == 'integer':
                 value = int(value.replace(',', ''))
             elif _type == 'number':
