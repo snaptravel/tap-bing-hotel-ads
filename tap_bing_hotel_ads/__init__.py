@@ -123,11 +123,11 @@ async def do_sync(start_date, end_date, cols):
         LOGGER.info('Streaming report: {} for customer {}, account {} - from {} to {}'
                     .format(job_id, customer_id, account_id, start_date, end_date))
 
-        stream_report(download_url, job_id)
+        stream_report(download_url, job_id, end_date)
         return True
     return False
 
-def stream_report(url, id):
+def stream_report(url, id, end_date):
     with metrics.http_request_timer('download_report'):
         response = requests.get(url)
 
@@ -163,6 +163,7 @@ def stream_report(url, id):
                         type_report_row(row)
                         singer.write_record(id, row)
                         counter.increment()
+                singer.write_state({'start_date': end_date})
 
 def type_report_row(row):
     for field_name, value in row.items():
