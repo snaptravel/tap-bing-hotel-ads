@@ -34,8 +34,8 @@ DATE_FORMAT = '%Y-%m-%d'
 SESSION = requests.session()
 CONFIG = {}
 DEFAULT_COLS = reports.REPORTING_FIELD_TYPES
-KEYS = ['HotelId']
-STREAM_NAME = 'bha_report'
+KEYS = ['HotelId', 'Date']
+STREAM_NAME = 'bha_performance_report'
 
 # ~10 min polling timeout
 MAX_NUM_REPORT_POLLS = 120
@@ -146,11 +146,7 @@ def stream_report(url, job_id, end_date):
         reader = csv.DictReader(csv_file, fieldnames=headers)
 
         schema = {'properties': {}}
-        for h in headers:
-          if not h in reports.REPORTING_FIELDNAME_MAP:
-            continue
-          f = reports.REPORTING_FIELDNAME_MAP[h]
-          _type = reports.REPORTING_FIELD_TYPES[f]
+        for f, _type in reports.REPORTING_FIELD_TYPES.items():
           field_data = {'type': _type}
           if _type in ['date', 'datetime']:
             field_data = {'type': 'string', 'format': 'date-time'}
