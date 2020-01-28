@@ -33,7 +33,7 @@ REQUIRED_CONFIG_KEYS = [
 DATE_FORMAT = '%Y-%m-%d'
 SESSION = requests.session()
 CONFIG = {}
-DEFAULT_COLS = ['HotelId', 'Clicks']
+DEFAULT_COLS = reports.REPORTING_FIELD_TYPES
 KEYS = ['HotelId']
 STREAM_NAME = 'bha_report'
 
