@@ -66,7 +66,7 @@ REPORTING_FIELDNAME_MAP = {
   'Hotel ID': 'HotelId',
   'Hotel name': 'HotelName',
   'Length of stay': 'LengthOfStay',
-  'Partner hotel ID': 'PartnerHotelID',
+  'Partner hotel ID': 'PartnerHotelId',
   'Site type': 'SiteType',
   'Slot type': 'SlotType',
   'Subaccount ID': 'SubAccountId',
