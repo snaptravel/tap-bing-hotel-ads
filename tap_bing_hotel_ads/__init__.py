@@ -35,6 +35,7 @@ SESSION = requests.session()
 CONFIG = {}
 DEFAULT_COLS = ['HotelId', 'Clicks']
 KEYS = ['HotelId']
+STREAM_NAME = 'bha_report'
 
 # ~10 min polling timeout
 MAX_NUM_REPORT_POLLS = 120
@@ -156,11 +157,11 @@ def stream_report(url, job_id, end_date):
           if f in KEYS:
             field_data['key'] = True
           schema['properties'][f] = field_data
-        singer.write_schema(job_id, schema, KEYS)
+        singer.write_schema(STREAM_NAME, schema, KEYS)
 
         with metrics.record_counter(job_id) as counter:
           for row in reader:
-            singer.write_record(job_id, type_report_row(row))
+            singer.write_record(STREAM_NAME, type_report_row(row))
             counter.increment()
         singer.write_state({'start_date': end_date})
 
