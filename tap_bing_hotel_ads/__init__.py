@@ -80,24 +80,26 @@ async def poll_report(customer_id, account_id, job_id, start_date, end_date):
   download_url = None
   poll_url = "https://partner.api.bingads.microsoft.com/Travel/v1/Customers({})/Accounts({})/ReportJobs('{}')".format(
     customer_id, account_id, job_id)
-  with metrics.job_timer('generate_report'):
-    for i in range(1, MAX_NUM_REPORT_POLLS + 1):
-      LOGGER.info('Polling report job %d/%d - %s - from %s to %s',
-                  i, MAX_NUM_REPORT_POLLS, job_id, start_date, end_date)
-      response = SESSION.get(poll_url)
-      resp_obj = response.json()
-      if resp_obj['Status'] == 'Completed':
-        if resp_obj['Url']:
-          download_url = resp_obj['Url']
-        else:
-          LOGGER.info("No results for report: %s - from %s to %s", job_id, start_date, end_date)
-        break
+  try:
+    with metrics.job_timer('generate_report'):
+      for i in range(1, MAX_NUM_REPORT_POLLS + 1):
+        LOGGER.info('Polling report job %d/%d - %s - from %s to %s',
+                    i, MAX_NUM_REPORT_POLLS, job_id, start_date, end_date)
+        response = SESSION.get(poll_url)
+        resp_obj = response.json()
+        if resp_obj['Status'] == 'Completed':
+          if resp_obj['Url']:
+            download_url = resp_obj['Url']
+          else:
+            LOGGER.info("No results for report: %s - from %s to %s", job_id, start_date, end_date)
+          break
 
-      if i == MAX_NUM_REPORT_POLLS:
-        LOGGER.info("Generating report timed out: %s - from %s to %s", job_id, start_date, end_date)
-        return False, ''
-      await asyncio.sleep(REPORT_POLL_SLEEP)
-
+        if i == MAX_NUM_REPORT_POLLS:
+          raise Exception("Generating report timed out: %s - from %s to %s" % (job_id, start_date, end_date))
+        await asyncio.sleep(REPORT_POLL_SLEEP)
+  except Exception as e:
+    LOGGER.exception(e)
+    return False, None
   return True, download_url
 
 
@@ -114,9 +116,16 @@ async def do_sync(start_date, end_date, cols):
     'Compression': 'ZIP',
   }
   global SESSION
-  SESSION = get_oauth_client()
-  response = SESSION.post(url, data=data)
-  job_id = response.json()['value']
+  job_id = None
+  try:
+    SESSION = get_oauth_client()
+    response = SESSION.post(url, data=data)
+    job_id = response.json()['value']
+  except Exception as e:
+    LOGGER.exception(e)
+    LOGGER.error('Authentication failed for: customer %s, account %s', customer_id, account_id)
+    return False
+
   success, download_url = await poll_report(customer_id, account_id, job_id, start_date, end_date)
   if success and download_url:
     LOGGER.info("Streaming report: %s for customer %s, account %s - from %s to %s",
@@ -124,6 +133,8 @@ async def do_sync(start_date, end_date, cols):
 
     stream_report(download_url, job_id, end_date)
     return True
+  LOGGER.error('Streaming report failed: %s for customer %s, account %s - from %s to %s',
+               job_id, customer_id, account_id, start_date, end_date)
   return False
 
 
