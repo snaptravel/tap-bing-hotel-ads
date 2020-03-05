@@ -22,7 +22,6 @@ from tap_bing_hotel_ads import reports
 LOGGER = singer.get_logger()
 
 REQUIRED_CONFIG_KEYS = [
-  'start_date',
   'customer_id',
   'account_id',
   'oauth_access_token',
