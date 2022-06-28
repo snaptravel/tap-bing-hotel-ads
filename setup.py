@@ -11,7 +11,7 @@ setup(name='tap-bing-hotel-ads',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_bing_hotel_ads'],
       install_requires=[
-        'arrow==0.12.0',
+        'arrow==0.15.1',
         'pytz==2018.4',
         'requests_oauthlib==1.3.0',
         'requests==2.20.0',
